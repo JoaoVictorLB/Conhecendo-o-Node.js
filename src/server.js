@@ -1,18 +1,25 @@
 require("express-async-errors");
+require("dotenv/config");
 
 const migrationsRun = require("./database/sqlite/migrations");
 const AppError = require("./utils/AppError");
+const uploadConfig = require("./configs/upload");
 
+const cors = require("cors");
 const express = require("express");
 const routes = require("./routes"); // A sintaxe "./routes/index.js" também funcionaria, porém por padrão o app busca o arquivo 'index.js' para carregá-lo automaticamente
 
 migrationsRun();
 
 const app = express();
-const PORT= 3333;
+const PORT= process.env.PORT || 3333;
 
+app.use(cors());
 app.use(express.json());
+
 app.use(routes);
+// Permite a geração de URL's diretamente para arquivos contidos na pasta UPLOADS_FOLDER, por exemplo: http://localhost:3333/files/foto1.png
+app.use("/files", express.static(uploadConfig.UPLOADS_FOLDER));
 
 app.use((error, request, response, next) => {
     /* 
